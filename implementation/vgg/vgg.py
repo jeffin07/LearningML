@@ -9,37 +9,40 @@ Original file is located at
 
 from keras.models import Sequential
 from keras.layers import Dense,Conv2D,MaxPooling2D,Flatten
+from keras.applications.vgg16 import VGG16, decode_predictions, preprocess_input
+from keras.preprocessing import image
+import numpy as np
 
-def vgg16():
+def vgg16(train_from_scratch=True, weights=None, num_classes=1000):
     print("vgg16")
     model = Sequential()
     # 2*64
     model.add(Conv2D(input_shape=(224, 224, 3), filters=64, kernel_size=3,
-              activation='relu'))
-    model.add(Conv2D(filters=64, kernel_size=3, activation='relu'))
+              activation='relu', padding='same'))
+    model.add(Conv2D(filters=64, kernel_size=3, activation='relu', padding='same'))
     # pool
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     # 2*128
-    model.add(Conv2D(filters=128, kernel_size=3, activation='relu'))
-    model.add(Conv2D(filters=128, kernel_size=3, activation='relu'))
+    model.add(Conv2D(filters=128, kernel_size=3, activation='relu', padding='same'))
+    model.add(Conv2D(filters=128, kernel_size=3, activation='relu', padding='same'))
     # pool
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     # 3*256
-    model.add(Conv2D(filters=256, kernel_size=3, activation='relu'))
-    model.add(Conv2D(filters=256, kernel_size=3, activation='relu'))
-    model.add(Conv2D(filters=256, kernel_size=3, activation='relu'))
+    model.add(Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'))
+    model.add(Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'))
+    model.add(Conv2D(filters=256, kernel_size=3, activation='relu', padding='same'))
     # pool
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     # 3*512
-    model.add(Conv2D(filters=512, kernel_size=3, activation='relu'))
-    model.add(Conv2D(filters=512, kernel_size=3, activation='relu'))
-    model.add(Conv2D(filters=512, kernel_size=3, activation='relu'))
+    model.add(Conv2D(filters=512, kernel_size=3, activation='relu', padding='same'))
+    model.add(Conv2D(filters=512, kernel_size=3, activation='relu', padding='same'))
+    model.add(Conv2D(filters=512, kernel_size=3, activation='relu', padding='same'))
     # pool
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     # 3*512
-    model.add(Conv2D(filters=512, kernel_size=3, activation='relu'))
-    model.add(Conv2D(filters=512, kernel_size=3, activation='relu'))
-    model.add(Conv2D(filters=512, kernel_size=3, activation='relu'))
+    model.add(Conv2D(filters=512, kernel_size=3, activation='relu', padding='same'))
+    model.add(Conv2D(filters=512, kernel_size=3, activation='relu', padding='same'))
+    model.add(Conv2D(filters=512, kernel_size=3, activation='relu', padding='same'))
     # pool
     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
     # flatten
@@ -47,8 +50,21 @@ def vgg16():
     # fully connected layers
     model.add(Dense(4096, activation='relu'))
     model.add(Dense(4096, activation='relu'))
-    model.add(Dense(1000, activation='softmax'))
+    model.add(Dense(num_classes, activation='softmax'))
+    if not train_from_scratch:
+        print("train from pretrained weights")
+        if weights == 'imagenet':
+            pretrained_model = VGG16(include_top=False,weights="imagenet", input_shape=(224, 224, 3))
+            for regions in range(1, len(pretrained_model.layers)):
+                # print(model.layers[regions],pretrained_model.layers[regions])
+                model.layers[regions-1].set_weights(pretrained_model.layers[regions].get_weights())
+            # pretrained_model.summary()
+        else:
+            print("only supports imagenet weights for now     :(    ")
+            exit()
     return model
 
 
 
+v = vgg16(train_from_scratch=False, weights="imagenet")
+v.summary()
