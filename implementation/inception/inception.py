@@ -3,7 +3,7 @@ from layers import layers
 
 class Inception:
 
-	def inception_layer(
+	def inception_module(
 			inputs, one_filters, three_filters, three_filter_reduce,
 			five_filters, five_filter_reduce, pool_proj_filters, name):
 		one_one = layers.Conv2d(
