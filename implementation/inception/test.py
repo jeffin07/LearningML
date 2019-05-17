@@ -3,7 +3,7 @@ from layers import layers
 from inception import Inception
 
 image = tf.random.normal(
-		shape=[1,224,224,3], mean=0.0, stddev=1.0, dtype = tf.dtypes.float32)
+		shape=[1,28,28,2], mean=0.0, stddev=1.0, dtype = tf.dtypes.float32)
 
 
 conv = layers.Conv2d(inputs=image, filters=64, kernel_size=(7,7), strides=(2,2), name="1")
@@ -16,10 +16,23 @@ inception3b = Inception.inception_module(inputs=inception3a,one_filters=128,thre
 max_pool2 = layers.maxPool(inputs=inception3b, kernel_size=(3,3), strides=(2,2),padding="same")
 inception4a = Inception.inception_module(inputs=max_pool2,one_filters=192,three_filters=208,five_filters=48,three_filter_reduce=96,five_filter_reduce=16,pool_proj_filters=64,name="inception4a")
 # aux net 
+aux_net1_avgpool = layers.avgPool(inputs=inception4a, kernel_size=(5,5), stride=(3,3),padding="same")
+aux_net1_conv = layers.Conv2d(inputs=aux_net1_avgpool, filters=128, kernel_size=(1,1), strides=(2,2),name="aux1_conv")
+aux_net1_flatten = layers.Flatten(inputs=aux_net1_conv)
+aux_net1_dense1 = layers.Dense(units=1024, activation="relu", inputs=aux_net1_flatten,name="aux_net1_dense")
+aux_net1_dense2  = layers.Dense(units=1024, activation="softmax", inputs=aux_net1_dense1,name="aux_net1_dense2")
+
 inception4b = Inception.inception_module(inputs=inception4a,one_filters=160,three_filters=224,five_filters=64,three_filter_reduce=112,five_filter_reduce=24,pool_proj_filters=64,name="inception4b")
 inception4c = Inception.inception_module(inputs=inception4b,one_filters=128,three_filters=256,five_filters=64,three_filter_reduce=128,five_filter_reduce=64,pool_proj_filters=64,name="inception4c")
 inception4d = Inception.inception_module(inputs=inception4c,one_filters=112,three_filters=288,five_filters=64,three_filter_reduce=144,five_filter_reduce=32,pool_proj_filters=64,name="inception4d")
 # aux net 
+aux_net2_avgpool = layers.avgPool(inputs=inception4d, kernel_size=(5,5), stride=(3,3),padding="same")
+aux_net2_conv = layers.Conv2d(inputs=aux_net2_avgpool, filters=128, kernel_size=(1,1), strides=(2,2),name="aux1_conv")
+aux_net2_flatten = layers.Flatten(inputs=aux_net2_conv)
+aux_net2_dense1 = layers.Dense(units=1024, activation="relu", inputs=aux_net2_flatten,name="aux_net1_dense")
+aux_net2_dense2  = layers.Dense(units=1024, activation="softmax", inputs=aux_net2_dense1,name="aux_net1_dense2")
+
+
 inception4e = Inception.inception_module(inputs=inception4d,one_filters=256,three_filters=320,five_filters=128,three_filter_reduce=160,five_filter_reduce=32,pool_proj_filters=128,name="inception4e")
 max_pool2 = layers.maxPool(inputs=inception4e, kernel_size=(3,3), strides=(2,2),padding="same")
 inception5a =Inception.inception_module(inputs=max_pool2,one_filters=256,three_filters=320,five_filters=128,three_filter_reduce=160,five_filter_reduce=32,pool_proj_filters=128,name="inception5a")
@@ -29,6 +42,6 @@ avg_pool = layers.avgPool(inputs=inception5b,kernel_size=(7,7),stride=(1,1),padd
 # flatten = layers.Flatten(inputs=avg_pool)
 dropout = layers.Dropout(inputs=avg_pool,rate=0.4)
 flatten = layers.Flatten(inputs=dropout)
-dense = layers.Dense(units=1000,activation="relu",inputs=flatten,name="dense")
+dense = layers.Dense(units=10,activation="softmax",inputs=flatten,name="dense")
 print(dense.shape)
 
