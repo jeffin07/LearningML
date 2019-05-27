@@ -5,7 +5,7 @@ from tensorflow.nn import atrous_conv2d
 
 
 class Vgg(Model):
-	def __init__(self,output_nodes):
+	def __init__(self):
 		super(Vgg, self).__init__()
 		# layers needed
 		self.conv1_1 = Conv2D(
