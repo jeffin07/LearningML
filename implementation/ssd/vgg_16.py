@@ -1,10 +1,26 @@
 import tensorflow as tf 
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Conv2D,Dense,Flatten,MaxPool2D
-from tensorflow.nn import atrous_conv2d
 
 
 class Vgg(Model):
+	'''
+
+	VGG implementation for SSD
+
+	changed the original VGG strucure by changing fc6,fc7 into conv layers
+	a maxpool after conv4_3 and added extra feature layers by removing last
+	fc layer
+
+	Input
+
+	An tensor(image) with size [batch, 300, 300, 3]
+
+	Output
+
+	a list of feature layers for SSD to perform localzation and classification
+
+	'''
 	def __init__(self):
 		super(Vgg, self).__init__()
 		# layers needed
@@ -137,4 +153,4 @@ class Vgg(Model):
 		'''
 
 		# return [fc6] 
-		return [out4_3, fc6, fc7, conv8_2, conv9_2, conv10_2, conv11_2]
+		return [out4_3, fc7, conv8_2, conv9_2, conv10_2, conv11_2]
