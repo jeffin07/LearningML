@@ -1,6 +1,23 @@
 import numpy as np 
 
+'''
+The A* algorithm combines features of uniform-cost search and pure heuristic search to efficiently compute optimal solutions.
+A* algorithm is a best-first search algorithm in which the cost associated with a node is f(n) = g(n) + h(n), 
+where g(n) is the cost of the path from the initial state to node n and h(n) is the heuristic estimate or the cost or a path 
+from node n to a goal.A* algorithm introduces a heuristic into a regular graph-searching algorithm,
+essentially planning ahead at each step so a more optimal decision is made.A* also known as the algorithm with brains
+'''
+
 class Cell(object):
+	'''
+	Class cell represents a cell in the world which have the property
+	position	: The position of the represented by  tupleof x and y 
+				  co-ordinates initially set to (0,0)
+	parent		: This contains the parent cell object which we visted 
+				  before arrinving this cell   
+	g,h,f  		: The parameters for constructing the huristic function
+				  which can be any function. for simplicity used line distance
+	'''
 	def __init__(self):
 		self.position=(0,0)
 		self.parent=None
@@ -8,7 +25,9 @@ class Cell(object):
 		self.g = 0
 		self.h = 0
 		self.f = 0
-
+	'''
+	overides equals method because otherwise cell assing will give wrong results
+	'''
 	def __eq__(self, cell):
 		return self.position == cell.position
 
@@ -17,6 +36,11 @@ class Cell(object):
 
 
 class Gridworld(object):
+
+	'''
+	Gridworld class represents the  external world here a grid M*M matrix
+	w    : create a numpy array with the given world_size default is 5
+	'''
 	
 	def __init__(self, world_size=(5, 5)):
 		self.w = np.zeros(world_size)
@@ -26,6 +50,12 @@ class Gridworld(object):
 	def show(self):
 		print(self.w)
 
+	'''
+	get_neighbours
+
+	as the name suggests this function will return the neighbours of the a particular cell 
+
+	'''
 	def get_neigbours(self, cell):
 		neughbour_cord = [(-1, -1), (-1, 0), (-1, 1),
 							(0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
@@ -41,9 +71,13 @@ class Gridworld(object):
 				c.parent = cell
 				neighbours.append(c)
 		return neighbours
-		# print(neighbours)
-		# print(self.w[cell(0)]:2)
 
+'''
+Implementation of a start algotithm 
+world : Object of the world object 
+start : Object of the cell as  start position
+stop  : Object of the cell as goal position
+'''
 def astar(world, start, goal):
 	_open = []
 	_closed = []
@@ -82,9 +116,14 @@ def astar(world, start, goal):
 	return path
 
 
+'''
 
+sample run
 
+'''
+# object for the world
 p = Gridworld()
+#stat position and Goal
 start = Cell()
 start.position = (0,0)
 goal = Cell()
