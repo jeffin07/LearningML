@@ -15,10 +15,12 @@ class SELayer(nn.Module):
             this has some more parameters and also initialize layers
             avgpool -> linear -> relu -> linear -> sigmoid
         '''
-        self.avg_pool = nn.AvgPool2d(kernel_size=(1,1))
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)#nn.AvgPool2d(kernel_size=(1,1))
         # x_ = self.avg_pool(x)
         resized_out = channels // reduction
+        print("resized_out", resized_out)
         self.sqe = nn.Sequential(
+            # nn.Flatten(),
             nn.Linear(channels, resized_out),
             nn.ReLU(),
             nn.Linear(resized_out, channels),
@@ -29,10 +31,15 @@ class SELayer(nn.Module):
         '''
             forward pass
         '''
-        h,w,c = x.shape()
-        x_ = self.avg_pool(x)
-        out = self.sqe(x_)
+        print("x : ", x.size())
+        batch,channels,_,_ = x.size()
+        x_ = self.avg_pool(x).view(batch, channels)
+        print("x_ : ",x_.shape)
+        # x_ = x_.view(h,w)
+        out = self.sqe(x_).view(batch,channels,1,1)
+        print("out : ", out.shape)
         out = x * out.expand_as(x)
+        print("output : ", out.shape)
         return out
 
 
@@ -49,9 +56,10 @@ class backbone(nn.Module):
         SELayer(16),
         nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3),
         nn.ReLU(),
-        SELayer(16),
-        nn.Flatten(),
-        nn.Linear(in_features = 16 * 32 * 32, out_features = 10),
+        SELayer(32),
+        nn.ReLU()
+        nn.Flatten(), # remove and seperate linear layers
+        nn.Linear(in_features = 16 * 16 * 16, out_features = 10),
         nn.Softmax()
 
         )
@@ -88,10 +96,10 @@ if __name__ == '__main__':
     backbone = backbone()
     optimizer = optim.Adam(params=backbone.parameters(), lr=0.0001)
 
-    lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+    # lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
 
     for epoch in range(4):
-        lr_scheduler.step()
+        # lr_scheduler.step()
         for imgs, classes in dataloader:
             # imgs, classes = imgs.to(device), classes.to(device)
 
