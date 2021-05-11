@@ -57,9 +57,9 @@ class backbone(nn.Module):
         nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3),
         nn.ReLU(),
         SELayer(32),
-        nn.ReLU()
+        nn.ReLU(),
         nn.Flatten(), # remove and seperate linear layers
-        nn.Linear(in_features = 16 * 16 * 16, out_features = 10),
+        nn.Linear(in_features = 1548800, out_features = 10),
         nn.Softmax()
 
         )
@@ -76,39 +76,44 @@ if __name__ == '__main__':
 
 
     
-    dataset = datasets.MNIST(
-        root='./data'
-        ,train=True
-        ,download=True
-        ,transform=transforms.Compose([
-            transforms.CenterCrop(224),
-            transforms.ToTensor()
-        ])
-    )
+    b_net = backbone()
 
-    dataloader = data.DataLoader(
-        dataset,
-        shuffle=True,
-        drop_last=True,
-        batch_size=2
-    )
+    print(b_net)
 
-    backbone = backbone()
-    optimizer = optim.Adam(params=backbone.parameters(), lr=0.0001)
+    # dataset = datasets.MNIST(
+    #     root='./data'
+    #     ,train=True
+    #     ,download=True
+    #     ,transform=transforms.Compose([
+    #         transforms.CenterCrop(224),
+    #         transforms.ToTensor()
+    #     ])
+    # )
 
-    # lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+    # dataloader = data.DataLoader(
+    #     dataset,
+    #     shuffle=True,
+    #     drop_last=True,
+    #     batch_size=1
+    # )
 
-    for epoch in range(4):
-        # lr_scheduler.step()
-        for imgs, classes in dataloader:
-            # imgs, classes = imgs.to(device), classes.to(device)
+    # backbone = backbone()
+    # optimizer = optim.Adam(params=backbone.parameters(), lr=0.0001)
 
-            # calculate the loss
-            output = backbone(imgs)
-            loss = F.cross_entropy(output, classes)
+    # # lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
 
-            print(loss)
-            # update the parameters
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+    # for epoch in range(4):
+    #     # lr_scheduler.step()
+    #     for imgs, classes in dataloader:
+    #         # imgs, classes = imgs.to(device), classes.to(device)
+
+    #         # calculate the loss
+    #         output = backbone(imgs)
+    #         print(output.size())
+    #         loss = nn.MSELoss()(output, classes)
+
+    #         print(loss)
+    #         # update the parameters
+    #         optimizer.zero_grad()
+    #         loss.backward()
+    #         optimizer.step()
