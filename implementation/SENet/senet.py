@@ -18,7 +18,7 @@ class SELayer(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool2d(1)#nn.AvgPool2d(kernel_size=(1,1))
         # x_ = self.avg_pool(x)
         resized_out = channels // reduction
-        print("resized_out", resized_out)
+        # print("resized_out", resized_out)
         self.sqe = nn.Sequential(
             # nn.Flatten(),
             nn.Linear(channels, resized_out),
@@ -31,15 +31,15 @@ class SELayer(nn.Module):
         '''
             forward pass
         '''
-        print("x : ", x.size())
+        # print("x : ", x.size())
         batch,channels,_,_ = x.size()
         x_ = self.avg_pool(x).view(batch, channels)
-        print("x_ : ",x_.shape)
+        # print("x_ : ",x_.shape)
         # x_ = x_.view(h,w)
         out = self.sqe(x_).view(batch,channels,1,1)
-        print("out : ", out.shape)
+        # print("out : ", out.shape)
         out = x * out.expand_as(x)
-        print("output : ", out.shape)
+        # print("output : ", out.shape)
         return out
 
 
@@ -57,16 +57,20 @@ class backbone(nn.Module):
         nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3),
         nn.ReLU(),
         SELayer(32),
-        nn.ReLU(),
-        nn.Flatten(), # remove and seperate linear layers
-        nn.Linear(in_features = 1548800, out_features = 10),
-        nn.Softmax()
-
+        nn.ReLU()
         )
+        self.fc = nn.Sequential(
+            nn.Linear(in_features = 32, out_features = 10),
+            nn.Softmax(dim=1)
+        )
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
 
     def forward(self, x):
 
-        return self.net(x)
+        out =  self.avg_pool(self.net(x))
+        # print(out.size())
+        out = out.reshape(out.shape[0], -1)
+        return self.fc(out)
 
 
 
@@ -80,40 +84,40 @@ if __name__ == '__main__':
 
     print(b_net)
 
-    # dataset = datasets.MNIST(
-    #     root='./data'
-    #     ,train=True
-    #     ,download=True
-    #     ,transform=transforms.Compose([
-    #         transforms.CenterCrop(224),
-    #         transforms.ToTensor()
-    #     ])
-    # )
+    batch_size = 32
 
-    # dataloader = data.DataLoader(
-    #     dataset,
-    #     shuffle=True,
-    #     drop_last=True,
-    #     batch_size=1
-    # )
+    dataset = datasets.MNIST(
+        root='./data'
+        ,train=True
+        ,download=True
+        ,transform=transforms.Compose([
+            transforms.CenterCrop(224),
+            transforms.ToTensor()
+        ])
+    )
 
-    # backbone = backbone()
-    # optimizer = optim.Adam(params=backbone.parameters(), lr=0.0001)
+    dataloader = data.DataLoader(
+        dataset,
+        shuffle=True,
+        drop_last=True,
+        batch_size=batch_size
+    )
 
-    # # lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
+    backbone = backbone()
+    optimizer = optim.Adam(params=backbone.parameters(), lr=0.01)
+    criterion = nn.CrossEntropyLoss()
 
-    # for epoch in range(4):
-    #     # lr_scheduler.step()
-    #     for imgs, classes in dataloader:
-    #         # imgs, classes = imgs.to(device), classes.to(device)
+    for epoch in range(5):
+        for batch_idx, (img, target) in enumerate(dataloader):
 
-    #         # calculate the loss
-    #         output = backbone(imgs)
-    #         print(output.size())
-    #         loss = nn.MSELoss()(output, classes)
+            optimizer.zero_grad()
+            output = backbone(img)
+            loss = criterion(output, target)
+            loss.backward() 
+            optimizer.step()
+            if batch_idx % 10 == 0:
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+                    epoch, batch_idx * len(img), len(dataloader.dataset),
+                    100. * batch_idx / len(dataloader), loss.item()))
 
-    #         print(loss)
-    #         # update the parameters
-    #         optimizer.zero_grad()
-    #         loss.backward()
-    #         optimizer.step()
+
