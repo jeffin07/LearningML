@@ -53,6 +53,50 @@ class invertedresidualblock(nn.Module):
 
 
 # class Mobilenetv2
+class MobilenetV2(nn.Module):
+
+	def __init__(self):
+
+		super(MobilenetV2, self).__init__()
+		self.conf = [
+			#t,c,n,s
+			[1,16,1,1],
+			[6,24,2,2],
+			[6,32,3,2],
+			[6,64,4,2],
+			[6,96,3,1],
+			[6,160,3,2],
+			[6,320,1,1],
+		]
+
+		layers = []
+		input_channel = 32
+		last_channel = 1280
+		avg_pool = nn.AdaptiveAvgPool2d(1)
+		# def forward(self, x):
+		layers.append(convblock(3, input_channel, stride=2))
+		# for i in self.conf:
+
+		for t,c,n,s in self.conf:
+
+			for num in range(n):
+				layers.append(invertedresidualblock(input_channel, c, t, stride=s))
+				input_channel = c
+
+
+		layers.append(convblock(input_channel, last_channel, stride=1))
+		layers.append(avg_pool)
+		layers.append(convblock(input_channel, 1000, stride=1))
+
+		self.features = nn.Sequential(*layers)
+
+	def __str__(self):
+
+		return '{}'.format(self.features)
+
+	def forward(self, x):
+
+		return self.features(x)
 
 
 
@@ -63,5 +107,8 @@ if __name__ == '__main__':
 
 	inv = invertedresidualblock(32, 1, 16, stride=1)
 	conv = convblock(3, 32, stride=2)
-
-	print(inv(conv(input_tensor)).size())
+	# Error in forward function
+	# test convb and inverted seperately
+	model = MobilenetV2()
+	print(model(input_tensor))
+	# print(inv(conv(input_tensor)).size())
