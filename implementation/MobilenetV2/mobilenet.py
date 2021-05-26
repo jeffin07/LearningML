@@ -1,5 +1,9 @@
 import torch
 import torch.nn as nn
+import torchvision.datasets as datasets
+import torchvision.transforms as transforms
+from torch.utils import data
+import torch.optim as optim
 
 
 # class convb 
@@ -73,14 +77,13 @@ class MobilenetV2(nn.Module):
 		input_channel = 32
 		last_channel = 1280
 		avg_pool = nn.AvgPool2d(7)
-		# avg_pool = nn.AdaptiveAvgPool2d(7)
-		# def forward(self, x):
+		num_classes = 10
+		# input shape [batch, 3, 224, 224]
 		layers.append(convblock(3, input_channel, stride=2))
-		# for i in self.conf:
+
 
 		for t,c,n,s in self.conf:
 
-			print("^^^^^^",[t,c,n,s])
 			for num in range(n):
 				stride = s if num ==0 else 1
 				layers.append(invertedresidualblock(input_channel, t, c, stride=stride))
@@ -95,7 +98,7 @@ class MobilenetV2(nn.Module):
 
 		self.classifier = nn.Sequential(
 			nn.Dropout(0.2),
-			nn.Linear(last_channel,1000)
+			nn.Linear(last_channel,num_classes)
 			)
 
 	def __str__(self):
@@ -111,19 +114,39 @@ class MobilenetV2(nn.Module):
 
 if __name__ == '__main__':
 
-
-	input_tensor = torch.rand(1,3,224,224)
-
-	inv = invertedresidualblock(input_channels=32, expansion_ratio=1, out_channels=16, stride=1)
-	conv = convblock(3, 32, stride=2)
-	print(inv(conv(input_tensor)).size())
-	# exit()
-	# [6,24,2,2]
-	# print((inv(input_tensor)).shape)
-	# inv2=invertedresidualblock(input_channels=24, expansion_ratio=6, out_channels=24, stride=1)
-	# print(inv2(inv(input_tensor)).shape)
-	# Error in forward function
-	# test convb and inverted seperately
 	model = MobilenetV2()
-	print(model(input_tensor).size())
-	# print(inv(conv(input_tensor)).size())
+
+	batch_size = 32
+
+	dataset = datasets.CIFAR10(
+		root='./data'
+		,train=True
+		,download=True
+		,transform=transforms.Compose([
+			transforms.CenterCrop(224),
+			transforms.ToTensor()
+		])
+	)
+
+	dataloader = data.DataLoader(
+		dataset,
+		shuffle=True,
+		drop_last=True,
+		batch_size=batch_size
+	)
+
+	optimizer = optim.Adam(params=model.parameters(), lr=0.01)
+	criterion = nn.CrossEntropyLoss()
+
+	for epoch in range(5):
+		for batch_idx, (img, target) in enumerate(dataloader):
+			# img = torch.reshape(img, [1,3,224,224])
+			optimizer.zero_grad()
+			output = model(img)
+			loss = criterion(output, target)
+			loss.backward() 
+			optimizer.step()
+			if batch_idx % 10 == 0:
+				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+				epoch, batch_idx * len(img), len(dataloader.dataset),
+				100. * batch_idx / len(dataloader), loss.item()))
