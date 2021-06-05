@@ -1,5 +1,21 @@
 What is attention ?
 
+finding the similarity between existing and new features is called attention
+ie, key, value, query
+key:vector for features
+value:vector for values of feature
+query: vector whose value to be found
+
+function used to determine the similarity is scoring function, attention function
+eg: dot product weighted dot product
+attention(q,k,v) = v.softmax(score(q,k))
+
+self attention:Finding the similarities netween all the features including it self
+in self attention q=k=v
+
+in Multi-head attention is simple which have learnable parameters w for k,q,v with n number of heads
+at last heads are concatinated and a linear transform
+
 transformers especially vit are better in large data
 in vit image are split into patches and converted into embeddings 
 
