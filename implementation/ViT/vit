@@ -20,3 +20,6 @@ transformers especially vit are better in large data
 in vit image are split into patches and converted into embeddings 
 
 self attention blocks replacing CNN ?
+
+
+very good example : https://theaisummer.com/einsum-attention/
