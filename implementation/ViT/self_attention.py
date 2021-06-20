@@ -3,20 +3,15 @@ import torch.nn as nn
 
 
 
-# This is single head self attention
-# implement another class for multi-head self attention
-# [B,token,head]
-
-
-
 class multi_head_self_attention(nn.Module):
 
-    def __init__(self, embed_size, heads=1):
+    def __init__(self, embed_size, heads=1, mask=None):
 
         super(multi_head_self_attention, self).__init__()
 
         self.embed_size = embed_size
         self.heads = heads
+        self.mask = mask
         self.head_dim = self.embed_size // self.heads
         self.scaled_factor = self.head_dim ** -0.5
 
@@ -39,7 +34,7 @@ class multi_head_self_attention(nn.Module):
             querys = self.query(x)
 
         # attention = torch.matmul(querys, torch.transpose(keys, 0, 1)) * self.scaled_factor
-            attention_heads.append(self._attention(keys, querys, values))
+            attention_heads.append(self._attention(keys, querys, values, mask=self.mask))
 
         attention_concat  = torch.cat(attention_heads, dim=2)
         # out = self.fc_out()
@@ -50,17 +45,24 @@ class multi_head_self_attention(nn.Module):
     def _attention(self, keys, querys, values, mask=None):
 
         attention = torch.einsum("bij,bkj -> bik", querys, keys) #* self.scaled_factor
+        if mask:
+            mask = torch.ones(attention.shape)
+            mask = torch.triu(mask,diagonal=1) * (-1e9)
+            print("attention : ",attention)
+            print("mask : ", mask)
+            attention += mask
+        print("again attention:",attention)
         attention = self.softmax(attention)
+        print("again attention:",attention)
         out = torch.matmul(attention,values)
-
         return out
 
 if __name__ == '__main__':
 
     x = torch.randn([1,4,512])
 
-    mhsa = multi_head_self_attention(512, heads=8)
+    mhsa = multi_head_self_attention(512, heads=2)
 
-    print(mhsa(x).shape)
+    mhsa(x)
 
 
