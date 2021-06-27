@@ -4,7 +4,16 @@ import torch.nn as nn
 
 
 class multi_head_self_attention(nn.Module):
+    '''
 
+    A simple implemetation of self attention from the
+    paper Attention is all you need https://arxiv.org/abs/1706.03762v5
+
+    embed_size : embedding size of input sequence (512 in paper)
+    heads :  number of heads
+    mask :  for masked attention
+    
+    '''
     def __init__(self, embed_size, heads=1, mask=None):
 
         super(multi_head_self_attention, self).__init__()
