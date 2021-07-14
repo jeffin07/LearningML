@@ -47,7 +47,15 @@ class Patch_embedding(nn.Module):
 
 
 class MLP(nn.Module):
+	"""
 
+	parameters
+	==========
+	in_features (int) : size of the input dimension
+	hidden_features (int) : hidden dimension
+	out_features (int) : number of output features
+
+	"""
 	def __init__(self, in_features, hidden_features, out_features, p=0.5):
 
 		super(MLP, self).__init__()
@@ -70,7 +78,15 @@ class MLP(nn.Module):
 
 		return out
 
+class Block(nn.Module):
 
+	def __init__(self):
+
+		super.__init__(Block, self).__init__()
+
+		# transformer block
+		#norm - > attention+skip -> norm -> mlp
+		pass
 # class ViT(nn.Module):
 
 # 	def __init__(
