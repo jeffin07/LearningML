@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+from self_attention import multi_head_self_attention as attention
 
 
 class Patch_embedding(nn.Module):
@@ -80,13 +80,41 @@ class MLP(nn.Module):
 
 class Block(nn.Module):
 
-	def __init__(self):
 
-		super.__init__(Block, self).__init__()
+	"""
+	
+	input
+	=====
+
+	heads(int) : number of attention heads
+	embed_size(int): input embeddig dimension
+
+
+	"""
+
+	def __init__(self, heads, embed_size=768, mlp_ratio=4.0):
+
+		super(Block, self).__init__()
+
+		self.norm1 = nn.LayerNorm(embed_size, 1e-6)
+		self.norm2 = nn.LayerNorm(embed_size, 1e-6)
+		self._attention = attention(heads=heads, embed_size=embed_size)
+
+		hidden_features = int(embed_size * mlp_ratio)
+		self._mlp = MLP(embed_size, hidden_features, embed_size)
+
+	def forward(self, x):
+
+		# norm1 = self.norm1(x)
+		# att = self._attention(x)
+		# print(att.shape, x.shape)
+		out1 = x + self._attention(self.norm1(x))
+		out2 = out1 + self._mlp(self.norm2(out1))
+
+		return out2
 
 		# transformer block
 		#norm - > attention+skip -> norm -> mlp
-		pass
 # class ViT(nn.Module):
 
 # 	def __init__(
@@ -110,5 +138,7 @@ if __name__ == '__main__':
 	patch_proj = Patch_embedding(96)
 
 	result = patch_proj(input_tensor)
-
 	print(result.shape)
+	block = Block(heads=1)
+
+	block(result)
