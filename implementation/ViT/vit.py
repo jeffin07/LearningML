@@ -30,7 +30,7 @@ class Patch_embedding(nn.Module):
 		self.patch_dim = patch_dim
 		self.embed_size = embed_size
 		self.channels = channels
-		# self.num_patches = (self.image_dim // self. patch_dim) ** 2
+		self.num_patches = (self.image_dim // self. patch_dim) ** 2
 
 		self.conv = nn.Conv2d(in_channels=self.channels, out_channels = self.embed_size, kernel_size=self.patch_dim, stride=self.patch_dim)
 
@@ -115,14 +115,76 @@ class Block(nn.Module):
 
 		# transformer block
 		#norm - > attention+skip -> norm -> mlp
-# class ViT(nn.Module):
+class ViT(nn.Module):
 
-# 	def __init__(
-# 			self, units=6, heads=8, input_dim=(512, 512),
-# 			patch_size=16
-# 		):
+	def __init__(
+			self, units=6, heads=8, input_dim=96,
+			patch_size=16, channels=3, mlp_ratio=4.0,
+			embed_size=768
+		):
 
-# 			super(ViT, self).__init__()
+		super(ViT, self).__init__()
+
+		self.units = units
+		self.heads = heads
+		self.input_dim = input_dim
+		self.patch_size = patch_size
+		self.channels = channels
+		self.mlp_ratio = mlp_ratio
+		self.embed_size = embed_size
+
+		n_cls = 10
+
+		self.patches = Patch_embedding(self.input_dim, self.patch_size, self.channels, self.embed_size)
+
+		self.cls_token = nn.Parameter(torch.zeros(1, 1, self.embed_size))
+
+		self.pos_embed = nn.Parameter(torch.zeros(1, self.patches.num_patches+1, self.embed_size))
+
+		self.pos_drop = nn.Dropout(p=0.5)
+
+		self.blocks = nn.ModuleList(
+				[
+
+					Block(self.heads, self.embed_size, self.mlp_ratio)
+					for _ in range(self.units)
+
+				]
+
+				
+			)
+
+
+		self.norm = nn.LayerNorm(self.embed_size, eps = 1e-6)
+		self.classifier = nn.Linear(self.embed_size, n_cls)
+
+	def forward(self, x):
+
+		n_samples = x.shape[0]
+
+		patches = self.patches(x)
+
+
+		cls_token = self.cls_token.expand(n_samples, -1, -1)
+		x = torch.cat((cls_token, patches), dim=1)
+
+		x = self.pos_drop(x + self.pos_embed)
+
+		for block in self.blocks:
+
+			x = block(x)
+
+		x = self.norm(x)
+
+		print("Before classifier")
+		print(x.shape)
+
+		out = self.classifier(x[:, 0])
+
+		return out
+
+
+
 
 
 # 			# embed_path
@@ -140,5 +202,10 @@ if __name__ == '__main__':
 	result = patch_proj(input_tensor)
 	print(result.shape)
 	block = Block(heads=1)
-
-	block(result)
+	print("Single block")
+	single_block = block(result)
+	print(single_block.shape)
+	print("Vision Transformer")
+	vit = ViT()
+	out = vit(input_tensor)
+	print(out.shape)
