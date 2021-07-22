@@ -47,7 +47,7 @@ class multi_head_self_attention(nn.Module):
 
         attention_concat  = torch.cat(attention_heads, dim=2)
         # out = self.fc_out()
-        print("*****",len(attention_heads), attention_heads[0].shape)
+        # print("*****",len(attention_heads), attention_heads[0].shape)
 
         return attention_concat
 
@@ -57,12 +57,12 @@ class multi_head_self_attention(nn.Module):
         if mask:
             mask = torch.ones(attention.shape)
             mask = torch.triu(mask,diagonal=1) * (-1e9)
-            print("attention : ",attention)
-            print("mask : ", mask)
+            # print("attention : ",attention)
+            # print("mask : ", mask)
             attention += mask
-        print("again attention:",attention)
+        # print("again attention:",attention)
         attention = self.softmax(attention)
-        print("again attention:",attention)
+        # print("again attention:",attention)
         out = torch.matmul(attention,values)
         return out
 
